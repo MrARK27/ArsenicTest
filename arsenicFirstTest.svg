@@ -1,14 +1,60 @@
-<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-  <rect width="100%" height="100%" fill="#1a1a1a" />
-  <text x="50%" y="50%" font-family="Arial" font-size="24" fill="white" text-anchor="middle">
-    Loading Secure Asset...
-  </text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" style="position: fixed; inset: 0;">
+  <foreignObject x="0" y="0" width="100%" height="100%">
+    <body xmlns="http://www.w3.org/1999/xhtml" lang="en" style="margin:0;width:100%;height:100%;min-height:100vh;overflow:hidden;">
+      <div id="root"></div>
+      <style><![CDATA[
+        html, body, #root { width: 100%; height: 100%; margin: 0; background: #000; }
+        body { min-height: 100vh; }
+      ]]></style>
+      <script><![CDATA[
+        (async function() {
+          const ns = 'http://www.w3.org/1999/xhtml';
+          const body = document.querySelector('body');
+          const head = document.createElementNS(ns, 'head');
+          body.prepend(head);
+          
+          // ARSENIC CONFIGURATION
+          // We point these to the official Arsenic repository files
+          const base = 'https://cdn.jsdelivr.net/gh/smartfoloo/arsenic@main/';
 
-  <script type="text/javascript">
-    <![CDATA[
-      window.location.href = "https://cdn.jsdelivr.net/gh/smartfoloo/arsenic@main/index.html";
-    ]]>
-  </script>
+          async function loadHtmlContent() {
+            try {
+              const response = await fetch(base + 'index.html');
+              const text = await response.text();
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(text, 'text/html');
+              const root = document.getElementById('root');
+              if (doc.body) {
+                root.innerHTML = doc.body.innerHTML;
+              }
+            } catch (err) {
+              console.error('Failed to load Arsenic HTML:', err);
+            }
+          }
+
+          async function appendHeadNode(nodeDef) {
+            const node = document.createElement(nodeDef.tag);
+            for (const [name, value] of Object.entries(nodeDef.attrs)) {
+              node.setAttribute(name, value);
+            }
+            head.appendChild(node);
+            if (nodeDef.tag === 'script' && nodeDef.attrs.src) {
+              await new Promise((res) => { node.onload = res; node.onerror = res; });
+            }
+          }
+
+          const headNodes = [
+            { tag: 'link', attrs: { rel: 'stylesheet', href: base + 'style.css' } },
+            { tag: 'script', attrs: { src: base + 'index.js' } }
+          ];
+
+          await loadHtmlContent();
+          for (const nodeDef of headNodes) {
+            await appendHeadNode(nodeDef);
+          }
+        })();
+      ]]></script>
+    </body>
+  </foreignObject>
 </svg>
